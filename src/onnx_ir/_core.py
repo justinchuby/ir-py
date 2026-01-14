@@ -3079,7 +3079,14 @@ class Graph(_protocols.GraphProtocol, Sequence[Node], _display.PrettyPrintable):
             pass
         yield from seen_graphs.keys()
 
-    def clone(self) -> Graph:
+    @typing.overload
+    def clone(self, *, return_value_map: typing.Literal[False] = False) -> Graph: ...
+    @typing.overload
+    def clone(
+        self, *, return_value_map: typing.Literal[True]
+    ) -> tuple[Graph, dict[Value, Value]]: ...
+
+    def clone(self, *, return_value_map = False):
         """Create a deep copy of this graph in O(#nodes + #values) time.
 
         All nodes, values, and subgraphs are cloned. The cloned graph will have
@@ -3089,6 +3096,8 @@ class Graph(_protocols.GraphProtocol, Sequence[Node], _display.PrettyPrintable):
         Tensors in initializers and constant values will be shared.
 
         .. versionadded:: 0.1.14
+        .. versionadded:: 0.1.15
+            Added ``return_value_map`` parameter.
 
         Returns:
             A deep copy of this graph.
@@ -3101,7 +3110,10 @@ class Graph(_protocols.GraphProtocol, Sequence[Node], _display.PrettyPrintable):
             metadata_props={},
             resolve_ref_attrs=False,
         )
-        return cloner.clone_graph(self)
+        cloned = cloner.clone_graph(self)
+        if return_value_map:
+            return cloned, cloner.value_map
+        return cloned
 
     # Mutation methods
     def append(self, node: Node, /) -> None:
@@ -3875,7 +3887,14 @@ class Function(_protocols.FunctionProtocol, Sequence[Node], _display.PrettyPrint
             pass
         yield from seen_graphs.keys()
 
-    def clone(self) -> Function:
+    @typing.overload
+    def clone(self, *, return_value_map: typing.Literal[False] = False) -> Function: ...
+    @typing.overload
+    def clone(
+        self, *, return_value_map: typing.Literal[True]
+    ) -> tuple[Function, dict[Value, Value]]: ...
+
+    def clone(self, return_value_map=False) -> Function:
         """Create a deep copy of this function in O(#nodes + #values) time.
 
         All nodes, values, and subgraphs are cloned. The cloned function will have
@@ -3884,7 +3903,13 @@ class Function(_protocols.FunctionProtocol, Sequence[Node], _display.PrettyPrint
 
         Tensors in initializers and constant values will be shared.
 
+        Args:
+            return_value_map: If True, also return a mapping from original values
+                to cloned values.
+
         .. versionadded:: 0.1.14
+        .. versionadded:: 0.1.15
+            The ``return_value_map`` parameter.
 
         Returns:
             A deep copy of this function.

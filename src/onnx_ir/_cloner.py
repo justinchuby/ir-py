@@ -39,7 +39,7 @@ class Cloner:
         self,
         *,
         attr_map: Mapping[str, _core.Attr],
-        value_map: dict[_core.Value, _core.Value | None],
+        value_map: dict[_core.Value, _core.Value],
         metadata_props: dict[str, str],
         post_process: Callable[[_core.Node], None] = lambda _: None,
         resolve_ref_attrs: bool = False,
@@ -62,6 +62,11 @@ class Cloner:
         self._metadata_props = metadata_props
         self._post_process = post_process
         self._resolve_ref_attrs = resolve_ref_attrs
+
+    @property
+    def value_map(self) -> dict[_core.Value, _core.Value]:
+        """The value map used during cloning."""
+        return self._value_map
 
     @_capture_error_context
     def clone_value(self, value: _core.Value) -> _core.Value:
